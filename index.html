@@ -183,7 +183,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Startseite
+            Home
           </a>
         </li>
       
@@ -193,7 +193,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
-            Archiv
+            Archives
           </a>
         </li>
       
@@ -275,7 +275,7 @@
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
               </span>
-              <span class="post-meta-item-text">Veröffentlicht am</span>
+              <span class="post-meta-item-text">Posted on</span>
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-03-16T19:19:02+08:00">
                 2017-03-16
               </time>
@@ -313,8 +313,7 @@
 
       
         
-          
-            <h1 id="Android构建之——利用Nexus搭建Maven私服"><a href="#Android构建之——利用Nexus搭建Maven私服" class="headerlink" title="Android构建之——利用Nexus搭建Maven私服"></a>Android构建之——利用Nexus搭建Maven私服</h1><blockquote>
+          <h1 id="Android构建之——利用Nexus搭建Maven私服"><a href="#Android构建之——利用Nexus搭建Maven私服" class="headerlink" title="Android构建之——利用Nexus搭建Maven私服"></a>Android构建之——利用Nexus搭建Maven私服</h1><blockquote>
 <p>OS：Mac</p>
 <p>开发工具：Android Studio</p>
 </blockquote>
@@ -322,28 +321,13 @@
 <li>公司内部使用或者自己开发出来的jar包能够给公司内部使用；</li>
 <li>没有分享出去的必要；</li>
 </ol>
-<h5 id="Step-1-下载Nexus"><a href="#Step-1-下载Nexus" class="headerlink" title="Step 1 下载Nexus"></a>Step 1 <a href="!https://www.sonatype.com/download-oss-sonatype">下载Nexus</a></h5><p>自行选择环境和版本</p>
-<p><img src="https://raw.githubusercontent.com/marryperry/MarkDownRes/cac79fb0fbee417665d9b462876836d7fc8137e5/pic/blog3_1.png" alt="截图1"></p>
-<p>下载后放在某个目录下解压</p>
-<blockquote>
-<p>配置环境变量<br>vi .bash_profile</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">NEXUS_HOME=/Users/tuantuan/Downloads/nexus-3.1.0-04-mac/nexus-3.1.0-04</div><div class="line">export PATH=$&#123;PATH&#125;:$&#123;NEXUS_HOME&#125;/bin</div></pre></td></tr></table></figure>
-<p>然后直接运行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">nexus start</div></pre></td></tr></table></figure></p>
-<p>服务就起好了   运行一下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://localhost:8081/nexus/</div></pre></td></tr></table></figure></p>
-<p><em>里面的目录先暂且不用考虑，下面我们来在Android Studio中使用Maven私库<br>新建两个项目，一个用于打包成jar包上传到私服，一个用于从私服上获取我们自己的jar包。</em></p>
-<h5 id="Step-2-module打包上传-项目A"><a href="#Step-2-module打包上传-项目A" class="headerlink" title="Step 2 module打包上传(项目A)"></a>Step 2 module打包上传(项目A)</h5><h6 id="1、专门写一个上传的gradle文件-名字示例：build-push-maven-gradle"><a href="#1、专门写一个上传的gradle文件-名字示例：build-push-maven-gradle" class="headerlink" title="1、专门写一个上传的gradle文件 名字示例：build_push_maven.gradle"></a>1、专门写一个上传的gradle文件 名字示例：build_push_maven.gradle</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">apply plugin: &apos;maven&apos;</div><div class="line"></div><div class="line">group &apos;com.tuantuan.demo&apos;</div><div class="line">version &apos;1.0.001&apos;</div><div class="line">def artifactId = &quot;print&quot;</div><div class="line"></div><div class="line">//打包源代码</div><div class="line">task sourcesJar(type: Jar) &#123;</div><div class="line">    classifier = &apos;sources&apos;</div><div class="line">    from android.sourceSets.main.java.srcDirs</div><div class="line">&#125;</div><div class="line"></div><div class="line">artifacts &#123;</div><div class="line">    archives sourcesJar</div><div class="line">&#125;</div><div class="line"></div><div class="line">//上传到nexus</div><div class="line">uploadArchives &#123;</div><div class="line">    repositories &#123;</div><div class="line">        mavenDeployer &#123;</div><div class="line">            repository(url: &quot;http://localhost:8081/repository/Android_release/&quot;) &#123;</div><div class="line">                authentication(userName: &quot;admin&quot;, password: &quot;admin123&quot;)</div><div class="line">            &#125;</div><div class="line">            pom.version = &quot;$project.version&quot;</div><div class="line">            pom.artifactId = &quot;$artifactId&quot;</div><div class="line">            pom.groupId = &quot;$project.group&quot;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h6 id="2、在需要上传的module中引用这个gradle任务"><a href="#2、在需要上传的module中引用这个gradle任务" class="headerlink" title="2、在需要上传的module中引用这个gradle任务"></a>2、在需要上传的module中引用这个gradle任务</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apply from:&apos;build_push_maven.gradle&apos;</div></pre></td></tr></table></figure>
-<h6 id="3、在Gradle中配置仓库地址和账号"><a href="#3、在Gradle中配置仓库地址和账号" class="headerlink" title="3、在Gradle中配置仓库地址和账号"></a>3、在Gradle中配置仓库地址和账号</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">repositories &#123;</div><div class="line">    maven &#123;</div><div class="line">        url &quot;http://localhost:8081/repository/Android_release&quot;</div><div class="line">        credentials &#123;</div><div class="line">            username &apos;admin&apos;</div><div class="line">            password &apos;admin123&apos;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>到这里clean一下项目，在右侧的Gradle面板内会多出来一个gradle任务</p>
-<p><img src="https://raw.githubusercontent.com/marryperry/MarkDownRes/cac79fb0fbee417665d9b462876836d7fc8137e5/pic/blog3_2.png" alt="截图2"></p>
-<blockquote>
-<p>直接双击就可以将项目打包上传到私服里了。</p>
-</blockquote>
-<h5 id="Step-3-获取私服内的库文件-项目B"><a href="#Step-3-获取私服内的库文件-项目B" class="headerlink" title="Step 3 获取私服内的库文件(项目B)"></a>Step 3 获取私服内的库文件(项目B)</h5><h6 id="1、在Gradle内配置地址和账户"><a href="#1、在Gradle内配置地址和账户" class="headerlink" title="1、在Gradle内配置地址和账户"></a>1、在Gradle内配置地址和账户</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">repositories &#123;</div><div class="line">    maven &#123;</div><div class="line">        url &quot;http://localhost:8081/repository/Android_release&quot;</div><div class="line">        credentials &#123;</div><div class="line">            username &apos;admin&apos;</div><div class="line">            password &apos;admin123&apos;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h6 id="2、然后就可以引用该私服里的所有库文件了，引用方式等同于引用远程第三方库"><a href="#2、然后就可以引用该私服里的所有库文件了，引用方式等同于引用远程第三方库" class="headerlink" title="2、然后就可以引用该私服里的所有库文件了，引用方式等同于引用远程第三方库"></a>2、然后就可以引用该私服里的所有库文件了，引用方式等同于引用远程第三方库</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">compile &apos;com.tuantuan.demo:print:1.0.001&apos;</div></pre></td></tr></table></figure>
-
-          
+          <!--noindex-->
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/03/16/Android构建之——利用Nexus搭建Maven私服/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -419,7 +403,7 @@
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
               </span>
-              <span class="post-meta-item-text">Veröffentlicht am</span>
+              <span class="post-meta-item-text">Posted on</span>
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-25T12:01:45+08:00">
                 2017-02-25
               </time>
@@ -457,45 +441,18 @@
 
       
         
-          
-            <h1 id="Spring-Boot-搭建Maven私服"><a href="#Spring-Boot-搭建Maven私服" class="headerlink" title="Spring Boot  搭建Maven私服"></a>Spring Boot  搭建Maven私服</h1><blockquote>
+          <h1 id="Spring-Boot-搭建Maven私服"><a href="#Spring-Boot-搭建Maven私服" class="headerlink" title="Spring Boot  搭建Maven私服"></a>Spring Boot  搭建Maven私服</h1><blockquote>
 <p>OS：Mac</p>
 <p>开发工具：idea</p>
 </blockquote>
-<h4 id="仅此记录配置私服过程中填过的坑！"><a href="#仅此记录配置私服过程中填过的坑！" class="headerlink" title="仅此记录配置私服过程中填过的坑！"></a>仅此记录配置私服过程中填过的坑！</h4><h5 id="Step-1-配置maven"><a href="#Step-1-配置maven" class="headerlink" title="Step 1 配置maven"></a>Step 1 配置maven</h5><ul>
-<li>Step 1 配置maven</li>
-</ul>
-<h6 id="1、下载maven"><a href="#1、下载maven" class="headerlink" title="1、下载maven"></a>1、<a href="http://maven.apache.org/download.cgi" target="_blank" rel="external">下载maven</a></h6><p><img src="https://github.com/marryperry/MarkDownRes/blob/master/pic/maven_1.png?raw=true" alt="下载截图"></p>
-<p>下载到本地解压，并建立本地仓库文件夹。</p>
-<h6 id="2、配置本地仓库路径"><a href="#2、配置本地仓库路径" class="headerlink" title="2、配置本地仓库路径"></a>2、配置本地仓库路径</h6><p>打开maven目录下conf文件夹里的settings.xml<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;localRepository&gt;本地仓库地址&lt;/localRepository&gt;</div></pre></td></tr></table></figure></p>
-<h6 id="3、配置本地环境变量"><a href="#3、配置本地环境变量" class="headerlink" title="3、配置本地环境变量"></a>3、配置本地环境变量</h6><p>mac下打开bash_profile文件  添加M2_HOME参数，路径填maven解压路径<br>例：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">M2_HOME=/Users/tuantuan/Documents/idea/apache-maven-3.3.9</div><div class="line">export PATH=$PATH:$M2_HOME/bin</div></pre></td></tr></table></figure>
-<p>在命令行中执行mvn -servion查看环境变量是否配置成功</p>
-<h6 id="4、在idea里配置maven"><a href="#4、在idea里配置maven" class="headerlink" title="4、在idea里配置maven"></a>4、在idea里配置maven</h6><blockquote>
-<p>preferences-&gt;maven</p>
-</blockquote>
-<p><img src="https://github.com/marryperry/MarkDownRes/blob/master/pic/maven_2.png?raw=true" alt="下载截图"></p>
-<h5 id="PS-在本地仓库新建settings-xml文件，文件内容包括私服的一些账号和地址"><a href="#PS-在本地仓库新建settings-xml文件，文件内容包括私服的一些账号和地址" class="headerlink" title="PS:在本地仓库新建settings.xml文件，文件内容包括私服的一些账号和地址"></a>PS:在本地仓库新建settings.xml文件，文件内容包括私服的一些账号和地址</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line">&lt;settings&gt;</div><div class="line">  &lt;mirrors&gt;</div><div class="line">    &lt;mirror&gt;</div><div class="line">      &lt;!--This sends everything else to /JAVAService --&gt;</div><div class="line">      &lt;id&gt;nexus&lt;/id&gt;</div><div class="line">      &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;</div><div class="line">      &lt;url&gt;http://私服地址/nexus/content/groups/public&lt;/url&gt;</div><div class="line">    &lt;/mirror&gt;</div><div class="line">  &lt;/mirrors&gt;</div><div class="line">  &lt;servers&gt;</div><div class="line">    &lt;server&gt;</div><div class="line">      &lt;id&gt;Snapshots&lt;/id&gt;</div><div class="line">      &lt;username&gt;deployment&lt;/username&gt;</div><div class="line">      &lt;password&gt;deployment&lt;/password&gt;</div><div class="line">    &lt;/server&gt;</div><div class="line">    &lt;server&gt;</div><div class="line">      &lt;id&gt;Releases&lt;/id&gt;</div><div class="line">      &lt;username&gt;deployment&lt;/username&gt;</div><div class="line">      &lt;password&gt;deployment&lt;/password&gt;</div><div class="line">    &lt;/server&gt;</div><div class="line">  &lt;/servers&gt;</div><div class="line">  &lt;profiles&gt;</div><div class="line">    &lt;profile&gt;</div><div class="line">      &lt;id&gt;nexus&lt;/id&gt;</div><div class="line">      &lt;!--Enable snapshots for the built in central repo to direct --&gt;</div><div class="line">      &lt;!--all requests to nexus via the mirror --&gt;</div><div class="line">      &lt;repositories&gt;</div><div class="line">        &lt;repository&gt;</div><div class="line">          &lt;id&gt;central&lt;/id&gt;</div><div class="line">          &lt;url&gt;http://私服地址/nexus/content/groups/public&lt;/url&gt;</div><div class="line">          &lt;releases&gt;</div><div class="line">            &lt;enabled&gt;true&lt;/enabled&gt;</div><div class="line">            &lt;updatePolicy&gt;always&lt;/updatePolicy&gt;</div><div class="line">          &lt;/releases&gt;</div><div class="line">          &lt;snapshots&gt;</div><div class="line">            &lt;enabled&gt;true&lt;/enabled&gt;</div><div class="line">            &lt;updatePolicy&gt;always&lt;/updatePolicy&gt;</div><div class="line">          &lt;/snapshots&gt;</div><div class="line">        &lt;/repository&gt;</div><div class="line">      &lt;/repositories&gt;</div><div class="line">      &lt;pluginRepositories&gt;</div><div class="line">        &lt;pluginRepository&gt;</div><div class="line">          &lt;id&gt;central&lt;/id&gt;</div><div class="line">          &lt;url&gt;http://私服地址/nexus/content/groups/public&lt;/url&gt;</div><div class="line">          &lt;releases&gt;</div><div class="line">            &lt;enabled&gt;true&lt;/enabled&gt;</div><div class="line">            &lt;updatePolicy&gt;always&lt;/updatePolicy&gt;</div><div class="line">          &lt;/releases&gt;</div><div class="line">          &lt;snapshots&gt;</div><div class="line">            &lt;enabled&gt;true&lt;/enabled&gt;</div><div class="line">            &lt;updatePolicy&gt;always&lt;/updatePolicy&gt;</div><div class="line">          &lt;/snapshots&gt;</div><div class="line">        &lt;/pluginRepository&gt;</div><div class="line">      &lt;/pluginRepositories&gt;</div><div class="line">    &lt;/profile&gt;</div><div class="line">  &lt;/profiles&gt;</div><div class="line">  &lt;activeProfiles&gt;</div><div class="line">    &lt;!--make the profile active all the time --&gt;</div><div class="line">    &lt;activeProfile&gt;nexus&lt;/activeProfile&gt;</div><div class="line">  &lt;/activeProfiles&gt;</div><div class="line">&lt;/settings&gt;</div></pre></td></tr></table></figure>
-<p>至此，环境算是配好了，下面实战如何将库上传到maven，以及如何使用私服里的库文件。</p>
-<ul>
-<li>Step 2 maven上传</li>
-</ul>
-<blockquote>
-<p>将库上传到maven，主要配置都在pom.xml中</p>
-</blockquote>
-<h6 id="1、配置指定私服地址和相关账号"><a href="#1、配置指定私服地址和相关账号" class="headerlink" title="1、配置指定私服地址和相关账号"></a>1、配置指定私服地址和相关账号</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;distributionManagement&gt;</div><div class="line">   &lt;repository&gt;</div><div class="line">      &lt;id&gt;Snapshots&lt;/id&gt;</div><div class="line">      &lt;name&gt;Snapshots&lt;/name&gt;</div><div class="line">      &lt;url&gt;http://私服地址/nexus/content/repositories/snapshots/&lt;/url&gt;</div><div class="line">   &lt;/repository&gt;</div><div class="line">&lt;/distributionManagement&gt;</div></pre></td></tr></table></figure>
-<h6 id="2、指定库相关参数（库名、版本号、打包方式）"><a href="#2、指定库相关参数（库名、版本号、打包方式）" class="headerlink" title="2、指定库相关参数（库名、版本号、打包方式）"></a>2、指定库相关参数（库名、版本号、打包方式）</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;groupId&gt;groupId&lt;/groupId&gt;</div><div class="line">&lt;artifactId&gt;唯一标识符&lt;/artifactId&gt;</div><div class="line">&lt;name&gt;库名（一般等于唯一标识符）&lt;/name&gt;</div><div class="line">&lt;packaging&gt;jar&lt;/packaging&gt;</div><div class="line">&lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;</div></pre></td></tr></table></figure>
-<h6 id="3、上传到maven命令"><a href="#3、上传到maven命令" class="headerlink" title="3、上传到maven命令"></a>3、上传到maven命令</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn clean source:jar deploy -D maven.test.skip=true</div></pre></td></tr></table></figure>
-<ul>
-<li>Step 3 maven下载</li>
-</ul>
-<blockquote>
-<p>如何使用maven私服里的库文件，主要也在pom.xml文件里</p>
-</blockquote>
-<h6 id="1、同上，配置maven私服地址和账号"><a href="#1、同上，配置maven私服地址和账号" class="headerlink" title="1、同上，配置maven私服地址和账号"></a>1、同上，配置maven私服地址和账号</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;distributionManagement&gt;</div><div class="line">   &lt;repository&gt;</div><div class="line">      &lt;id&gt;Snapshots&lt;/id&gt;</div><div class="line">      &lt;name&gt;Snapshots&lt;/name&gt;</div><div class="line">      &lt;url&gt;http://私服地址/nexus/content/repositories/snapshots/&lt;/url&gt;</div><div class="line">   &lt;/repository&gt;</div><div class="line">&lt;/distributionManagement&gt;</div></pre></td></tr></table></figure>
-<h6 id="2、当正常maven库使用方式"><a href="#2、当正常maven库使用方式" class="headerlink" title="2、当正常maven库使用方式"></a>2、当正常maven库使用方式</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">   &lt;groupId&gt;同上配置&lt;/groupId&gt;</div><div class="line">   &lt;artifactId&gt;同上配置&lt;/artifactId&gt;</div><div class="line">   &lt;version&gt;同上配置&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-<h5 id="由此，maven私服的使用完毕！"><a href="#由此，maven私服的使用完毕！" class="headerlink" title="由此，maven私服的使用完毕！"></a>由此，maven私服的使用完毕！</h5>
-          
+<h4 id="仅此记录配置私服过程中填过的坑！"><a href="#仅此记录配置私服过程中填过的坑！" class="headerlink" title="仅此记录配置私服过程中填过的坑！"></a>仅此记录配置私服过程中填过的坑！</h4>
+          <!--noindex-->
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/02/25/spring boot/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -571,7 +528,7 @@
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
               </span>
-              <span class="post-meta-item-text">Veröffentlicht am</span>
+              <span class="post-meta-item-text">Posted on</span>
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-12-30T13:43:28+08:00">
                 2016-12-30
               </time>
@@ -687,7 +644,7 @@
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
               </span>
-              <span class="post-meta-item-text">Veröffentlicht am</span>
+              <span class="post-meta-item-text">Posted on</span>
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-12-30T10:26:51+08:00">
                 2016-12-30
               </time>
@@ -725,18 +682,14 @@
 
       
         
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo new <span class="string">"My New Post"</span></div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo server</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo generate</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-          
+          <p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+          <!--noindex-->
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/12/30/hello-world/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -806,7 +759,7 @@
           <div class="site-state-item site-state-posts">
             <a href="/archives">
               <span class="site-state-item-count">4</span>
-              <span class="site-state-item-name">Artikel</span>
+              <span class="site-state-item-name">posts</span>
             </a>
           </div>
 
@@ -857,7 +810,7 @@
 
 
 <div class="powered-by">
-  Erstellt mit  <a class="theme-link" href="https://hexo.io">Hexo</a>
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
 </div>
 
 <div class="theme-info">
